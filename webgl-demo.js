@@ -1,6 +1,9 @@
 import { initBuffers } from "./init-buffers.js";
 import { drawScene } from "./draw-scene.js";
 
+let squareRotation = 0.0;
+let deltaTime = 0;
+
 main();
 
 function main() {
@@ -17,15 +20,23 @@ function main() {
 
     const vsSource = `
     attribute vec4 aVertexPosition;
+    attribute vec4 aVertexColor;
+
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+
+    varying lowp vec4 vColor;
+
     void main () {
         gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        vColor = aVertexColor;
     }`;
 
     const fsSource = `
+    varying lowp vec4 vColor;
+
     void main() {
-        gl_FragColor = vec4(0.2, 0.6, 0.99, 1.0);
+        gl_FragColor = vColor;
     }`;
 
     const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -33,19 +44,28 @@ function main() {
     const programInfo = {
         program: shaderProgram,
         attribLocations: {
-            vertexPosition: gl.getAttribLocation(shaderProgram,
-                'aVertexPosition'),
-            },
-            uniformLocations: {
-                projectionMatrix: gl.getUniformLocation(shaderProgram,
-                    'uProjectionMatrix'),
-                modelViewMatrix: gl.getUniformLocation(shaderProgram,
-                    'uModelViewMatrix'),
-            }, 
+            vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+            vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+        },
+        uniformLocations: {
+            projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+            modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+        }, 
     };
 
     const buffers = initBuffers(gl);
-    drawScene(gl, programInfo, buffers);
+    let then = 0;
+    function render(now) {
+        now *= 0.001;
+        deltaTime = now - then;
+        then = now;
+
+        drawScene(gl, programInfo, buffers, squareRotation);
+        squareRotation += deltaTime;
+        
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
 }
 
 function initShaderProgram(gl, vsSource, fsSource) {

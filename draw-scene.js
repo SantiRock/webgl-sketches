@@ -1,5 +1,5 @@
-function drawScene(gl, programInfo, buffers) {
-    gl.clearColor(0.2, 0.9, 0.5, 1.0);
+function drawScene(gl, programInfo, buffers, squareRotation) {
+    gl.clearColor(0.1, 0.1, 0.1, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -17,10 +17,18 @@ function drawScene(gl, programInfo, buffers) {
     mat4.translate(
         modelViewMatrix,
         modelViewMatrix,
-        [-0.0, 0.0, -3.0]
+        [-0.0, 0.0, -4.0]
+    );
+
+    mat4.rotate (
+        modelViewMatrix,
+        modelViewMatrix,
+        squareRotation,
+        [0, 0, 1]
     );
 
     setPositionAttribute(gl, buffers, programInfo);
+    setColorAttribute(gl, buffers, programInfo);
     gl.useProgram(programInfo.program);
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
@@ -57,6 +65,25 @@ function setPositionAttribute(gl, buffers, programInfo) {
     );
 
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+}
+
+function setColorAttribute(gl, buffers, programInfo) {
+    const numComponents = 4;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.vertexColor,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset,
+    );
+
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
 }
 
 export { drawScene }; 

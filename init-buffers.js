@@ -1,6 +1,26 @@
+function initColorBuffer(gl) {
+    const colors = [
+        0.9, 0.9, 0.3, 1.0,
+        0.8, 0.3, 0.3, 1.0,
+        0.2, 0.9, 0.3, 1.0,
+        0.2, 0.2, 0.9, 1.0,
+    ];
+
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    return colorBuffer;
+}
+
+// Buffer -------
+
 function initBuffers(gl) {
     const positionBuffer = initPositionBuffer(gl);
-    return { position: positionBuffer,};
+    const colorBuffer = initColorBuffer(gl);
+    return { 
+        position: positionBuffer,
+        color: colorBuffer,
+    };
 }
 
 function initPositionBuffer(gl) {
@@ -12,3 +32,6 @@ function initPositionBuffer(gl) {
 }
 
 export { initBuffers };
+
+
+
