@@ -15,29 +15,34 @@ function main() {
         return;
     }
 
-    gl.clearColor(0.2, 0.9, 0.5, 1.0);
+    gl.clearColor(0.05, 0.05, 0.05, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     const vsSource = `
     attribute vec4 aVertexPosition;
-    attribute vec4 aVertexColor;
+    attribute vec2 aTextureCoord;
 
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
 
-    varying lowp vec4 vColor;
+    varying highp vec2 vTextureCoord;
 
-    void main () {
+    void main (void) {
         gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-        vColor = aVertexColor;
+        vTextureCoord = aTextureCoord;
     }`;
+    //varying lowp vec4 vColor;
+    //vColor = aVertexColor;
 
     const fsSource = `
-    varying lowp vec4 vColor;
-
-    void main() {
-        gl_FragColor = vColor;
+    varying highp vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+    
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vTextureCoord);
     }`;
+    //varying lowp vec4 vColor;
+    //gl_FragColor = vColor;
 
     const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
@@ -45,28 +50,35 @@ function main() {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-            vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+            textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+            //vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
         }, 
     };
 
     const buffers = initBuffers(gl);
+    const texture = loadTexture(gl, "text.jpg");
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     let then = 0;
     function render(now) {
         now *= 0.001;
         deltaTime = now - then;
         then = now;
 
-        drawScene(gl, programInfo, buffers, cubeRotation);
+        drawScene(gl, programInfo, buffers, texture, cubeRotation);
         cubeRotation += deltaTime;
         
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 }
+
+
+// Callbacks -------
 
 function initShaderProgram(gl, vsSource, fsSource) {
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
@@ -96,3 +108,54 @@ function loadShader(gl, type, source) {
     }
     return shader;
 }
+
+function loadTexture(gl, url) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array([25, 50, 100, 255]);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        level,
+        internalFormat,
+        width,
+        height,
+        border,
+        srcFormat,
+        srcType,
+        pixel,
+    );
+    
+    const image = new Image();
+    image.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            srcFormat,
+            srcType,
+            image
+        );
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+    };
+    image.src = url;
+    return texture;
+}
+
+function isPowerOf2(value) {
+    return (value & (value - 1)) === 0;
+}
+
