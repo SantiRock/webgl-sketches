@@ -3,9 +3,11 @@ function initBuffers(gl) {
     //const colorBuffer = initColorBuffer(gl);
     const textureCoordBuffer = initTextureBuffer(gl);
     const indexBuffer = initIndexBuffer(gl);
+    const normalBuffer = initNormalBuffer(gl); 
     return { 
         position: positionBuffer,
         //color: colorBuffer,
+        normal: normalBuffer,
         textureCoord: textureCoordBuffer,
         indices: indexBuffer,
     };
@@ -96,6 +98,31 @@ function initTextureBuffer(gl) {
 
     return textureCoordBuffer
 }
+
+// Lighting -----
+
+function initNormalBuffer(gl) {
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+
+    const vertexNormals = [
+        0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, //front
+        0.0, 0.0 -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, //back
+        0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, //top
+        0.0, -1.0, 0.0, 0.0, -1,0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, //bottom
+        1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, //Rigth
+        -1.0, 0.0, 0.0, -1,0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, //Left
+    ];
+
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array(vertexNormals),
+        gl.STATIC_DRAW
+    );
+
+    return normalBuffer;
+}
+
 
 // Export ----
 
