@@ -5,6 +5,7 @@ body {
 
 .canvas {
     margin-top: 20px;
-    width: 90%;
-    height: 500px;
+    margin-bottom: 20px;
+    width: 40%;
+    height: 300px;
 }
